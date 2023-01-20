@@ -1,4 +1,4 @@
-package core;
+package core.data;
 
 public class ItemInStock {
 
@@ -28,11 +28,9 @@ public class ItemInStock {
 	public int getQuantity() {
 		return quantity;
 	}
-	
-	public void changeQuantity(int qtyToAddOrRemove) {
-		if ((qtyToAddOrRemove >= 0 ) || (quantity >= -qtyToAddOrRemove)) {
-			quantity += qtyToAddOrRemove ;
-		}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
 
 	@Override

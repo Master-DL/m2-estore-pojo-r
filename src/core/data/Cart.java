@@ -1,4 +1,6 @@
-package core;
+package core.data;
+
+import core.Client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,16 +16,6 @@ public class Cart {
     
     public Cart(Client client) {
         this.client = client;
-    }
-    
-    public void addItem( Object item, int qty ) {
-        int oldQty = 0;
-        if ( items.containsKey(item) ) {
-            // The item has already been put in the cart
-            // Increase the number
-            oldQty = ((Integer) items.get(item)).intValue();
-        }
-        items.put( item, qty+oldQty );
     }
     
     public Map getItems() {

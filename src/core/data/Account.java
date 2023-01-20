@@ -1,4 +1,4 @@
-package core;
+package core.data;
 
 import estorePojo.exceptions.InsufficientBalanceException;
 
@@ -21,16 +21,6 @@ public class Account {
 
     public void setAmount(double amount) {
         this.amount = amount;
-    }
-    
-    public void credit(double amount) {
-        this.amount += amount;        
-    }
-
-    public void withdraw(double amount) throws InsufficientBalanceException {
-        if ( this.amount < amount )
-            throw new InsufficientBalanceException(owner);
-        this.amount -= amount;
     }
     
     /**

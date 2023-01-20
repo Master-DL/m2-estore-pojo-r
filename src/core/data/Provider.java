@@ -1,4 +1,4 @@
-package core;
+package core.data;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,24 +32,7 @@ public class Provider {
 		return price.doubleValue();
 	}
 
-	/**
-	 * Emit an order for items. The provider returns the delay for delivering the
-	 * items.
-	 * 
-	 * @param store the store that emits the order
-	 * @param item  the item ordered
-	 * @param qty   the quantity ordered
-	 * @return the delay (in hours)
-	 */
-	public int order(Store store, Object item, int qty) throws UnknownItemException {
-
-		if (!itemPrices.containsKey(item))
-			throw new UnknownItemException("Item " + item + " is not an item delivered by this provider.");
-
-		// Actually the production process is quite chaotic
-		// We only know that the production a random number of hours!!
-		double r = Math.random() * 10 * qty;
-		return (int) r;
+	public Map<String, Double> getItemPrices() {
+		return itemPrices;
 	}
-
 }

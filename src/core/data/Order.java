@@ -1,12 +1,13 @@
-package core;
+package core.data;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import core.Client;
+import core.service.OrderService;
 import estorePojo.exceptions.UnknownItemException;
 
 public class Order {
@@ -50,50 +51,6 @@ public class Order {
 	}
 
 	/**
-	 * Add an item to the order.
-	 * 
-	 * @param item
-	 * @param qty
-	 * @param price
-	 * @throws UnknownItemException
-	 */
-	public void addItem(Object item, int qty, double price) throws UnknownItemException {
-
-		if (itemPrices.containsKey(item)) {
-			double oldPrice = ((Double) itemPrices.get(item)).doubleValue();
-			if (oldPrice != price)
-				throw new UnknownItemException(
-						"Item " + item + " price (" + price + ") added to cart is different from the price (" + oldPrice
-								+ ") of the same item already in the cart");
-		}
-
-		items.add(item);
-		itemPrices.put(item, price);
-
-		int newQty = qty;
-		if (itemQuantities.containsKey(item)) {
-			newQty += ((Integer) itemQuantities.get(item)).intValue();
-		}
-		itemQuantities.put(item, newQty);
-	}
-
-	/**
-	 * Compute the total amount of the order
-	 */
-	public double computeAmount() {
-
-		double amount = 0;
-
-		for (Object item : items) {
-			int qty = ((Integer) itemQuantities.get(item)).intValue();
-			double price = ((Double) itemPrices.get(item)).doubleValue();
-			amount += qty * price;
-		}
-
-		return amount;
-	}
-
-	/**
 	 * @return Returns the delay for delivering this order.
 	 */
 	public int getDelay() {
@@ -113,9 +70,33 @@ public class Order {
 		return num;
 	}
 
+	public Set<Object> getItems() {
+		return items;
+	}
+
+	public void setItems(Set<Object> items) {
+		this.items = items;
+	}
+
+	public Map<Object, Integer> getItemQuantities() {
+		return itemQuantities;
+	}
+
+	public void setItemQuantities(Map<Object, Integer> itemQuantities) {
+		this.itemQuantities = itemQuantities;
+	}
+
+	public Map<Object, Double> getItemPrices() {
+		return itemPrices;
+	}
+
+	public void setItemPrices(Map<Object, Double> itemPrices) {
+		this.itemPrices = itemPrices;
+	}
+
 	public String toString() {
 		String msg = "Order #" + num + " ";
-		msg += "amount: " + computeAmount() + " ";
+		msg += "amount: " + new OrderService().computeAmount(this) + " "; //todo : pb de couplage, à changer
 		msg += "delay: " + getDelay() + "h ";
 		msg += "issued on: " + date;
 		return msg;
