@@ -32,3 +32,15 @@ Voir dépendances dans la question 1
   addItemToCart() - ajoute un produit dans le panier avec une quantité
   pay() - crée la commande, calcule son montant et effectue le virement entre les comptes
   oneShotOrder() - commande d'un seul type de produit avec une quantité
+
+IBankService : Bank, Account
+IItemService: Cart, ItemInStock, Order
+ISellerService : Provider, Store
+
+IBankService : transfert(), withdraw(), credit()
+IItemService : addItem(), setQuantity(), computeAmount()
+ISellerService : order(), pay()
+
+8 (+ quelques méthodes uniques à certains services)
+
+Je ne comprends pas la question, ce ne sont pas les mêmes services que ceux exprimés deux questions plus tôt ?
