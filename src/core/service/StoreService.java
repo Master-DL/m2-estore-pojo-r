@@ -1,9 +1,7 @@
 package core.service;
 
 import core.Client;
-import core.data.Cart;
-import core.data.ItemInStock;
-import core.data.Order;
+import core.data.*;
 import estorePojo.exceptions.InsufficientBalanceException;
 import estorePojo.exceptions.InvalidCartException;
 import estorePojo.exceptions.UnknownAccountException;
@@ -23,15 +21,15 @@ public class StoreService {
      *      directly from the store
      *      i.e. without having to re-order it from the provider
      */
-    public boolean isAvailable( Object item, int qty )
+    public boolean isAvailable(Store store, Object item, int qty )
             throws UnknownItemException {
 
-        if ( ! .containsKey(item) )
+        if ( ! store.getItemsInStock().containsKey(item) )
             throw new UnknownItemException(
                     "Item "+item+
                             " does not correspond to any known reference");
 
-        ItemInStock iis = (ItemInStock) itemsInStock.get(item);
+        ItemInStock iis = (ItemInStock) store.getItemsInStock().get(item);
         boolean isAvailable = (iis.getQuantity() >= qty);
 
         return isAvailable;
@@ -51,7 +49,7 @@ public class StoreService {
      *      Either a new cart at each call or the same cart updated.
      *
      * @throws UnknownItemException
-     * @throws MismatchClientCartException
+     * //@throws MismatchClientCartException
      *      if the given client does not own the given cart
      */
     public Cart addItemToCart(
@@ -71,7 +69,7 @@ public class StoreService {
                         "Cart "+cart+" does not belong to "+client);
         }
 
-        cart.addItem(item,qty);
+        new CartService().addItem(cart, item, qty);
 
         return cart;
     }
@@ -87,7 +85,7 @@ public class StoreService {
      *
      * @throws UnknownItemException
      */
-    public Order pay(Cart cart, String address, String bankAccountRef )
+    public Order pay(Store store, Cart cart, String address, String bankAccountRef )
             throws
             InvalidCartException, UnknownItemException,
             InsufficientBalanceException, UnknownAccountException {
@@ -97,7 +95,7 @@ public class StoreService {
 
         // Create a new order
         Order order = new Order( cart.getClient(), address, bankAccountRef );
-        orders.put(order.getKey(), order );
+        store.getOrders().put(order.getKey(), order );
 
         // Order all the items of the cart
         Set entries = cart.getItems().entrySet();
@@ -106,14 +104,14 @@ public class StoreService {
             Object item = entry.getKey();
             int qty = ((Integer) entry.getValue()).intValue();
 
-            treatOrder(order,item,qty);
+            treatOrder(store, order,item,qty);
         }
-        double amount = order.computeAmount();
+        double amount = new OrderService().computeAmount(order);
 
         // Make the payment
         // Throws InsuffisiantBalanceException if the client account is
         // not sufficiently balanced
-        bank.transfert(bankAccountRef,toString(),amount);
+        store.getBank().transfert(bankAccountRef,toString(),amount);
 
         return order;
     }
@@ -136,6 +134,7 @@ public class StoreService {
      * @throws UnknownAccountException
      */
     public Order oneShotOrder(
+            Store store,
             Client client,
             Object item,
             int qty,
@@ -148,17 +147,76 @@ public class StoreService {
 
         // Create a new order
         Order order = new Order( client, address, bankAccountRef );
-        orders.put(order.getKey(), order );
+        store.getOrders().put(order.getKey(), order );
 
         // Treat the item ordered
-        treatOrder(order,item,qty);
-        double amount = order.computeAmount();
+        treatOrder(store, order,item,qty);
+        double amount = new OrderService().computeAmount(order);
 
         // Make the payment
         // Throws InsuffisiantBalanceException if the client account is
         // not sufficiently balanced
-        bank.transfert(bankAccountRef,toString(),amount);
+        store.getBank().transfert(bankAccountRef,toString(),amount);
 
         return order;
+    }
+
+    /**
+     * Treat an item ordered by a client and update the corresponding order.
+     *
+     * @param order
+     * @param item
+     * @param qty
+     * @return
+     *
+     * @throws UnknownItemException
+     * @throws InsufficientBalanceException
+     * @throws UnknownAccountException
+     */
+    private void treatOrder( Store store, Order order, Object item, int qty )
+            throws UnknownItemException {
+
+        // The number of additional item to order
+        // in case we need to place an order to the provider
+        final int more = 10;
+
+        // The price of the ordered item
+        // Throws UnknownItemException if the item does not exist
+        final double price = store.getProvider().getPrice(item);
+
+        final double totalAmount = price*qty;
+
+        // The delay (in hours) for delivering the order
+        // By default, it takes 2 hours to ship items from the stock
+        // This delay increases if an order is to be placed to the provider
+        int delay = 2;
+
+        // Check whether the item is available in the stock
+        // If not, place an order for it to the provider
+        ItemInStock iis = (ItemInStock) store.getItemsInStock().get(item);
+        if ( iis == null ) {
+            int quantity = qty + more;
+            delay += new ProviderService().order(store.getProvider(), store, item, quantity);
+            ItemInStock newItem = new ItemInStock(item,more,price,store.getProvider());
+            store.getItemsInStock().put(item,newItem);
+        }
+        else {
+            // The item is in the stock
+            // Check whether there is a sufficient number of them
+            // to match the order
+            if ( iis.getQuantity() >= qty ) {
+                new ItemInStockService().changeQuantity(iis, qty);
+            }
+            else {
+                // An order to the provider needs to be issued
+                int quantity = qty + more;
+                new ProviderService().order(store.getProvider(), store, item, quantity);
+                new ItemInStockService().changeQuantity(iis, more);
+            }
+        }
+
+        // Update the order
+        new OrderService().addItem(order, item, qty, price);
+        order.setDelay(delay);
     }
 }
