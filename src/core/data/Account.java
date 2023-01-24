@@ -30,9 +30,8 @@ public class Account {
      * we should have a account number.
      */
     public boolean equals( Object other ) {
-        if( ! (other instanceof Account) )
+        if( ! (other instanceof Account otherAccount) )
             return false;
-        Account otherAccount = (Account) other;
         return ( otherAccount.owner == owner);
     }
     

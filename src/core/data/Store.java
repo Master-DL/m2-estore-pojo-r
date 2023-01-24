@@ -1,37 +1,31 @@
 package core.data;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import core.Client;
+import core.data.interfaces.IItemList;
+import core.data.interfaces.ISeller;
 import core.service.BankService;
 import estorePojo.exceptions.InsufficientBalanceException;
 import estorePojo.exceptions.InvalidCartException;
 import estorePojo.exceptions.UnknownAccountException;
 import estorePojo.exceptions.UnknownItemException;
 
-public class Store {
+public class Store implements ISeller {
 
-    private Provider provider;
-    private BankService bank;
+    private final ISeller provider;
+    private IItemList itemStock;
+    private Account account;
+
+    private final Map<Product, Double> itemPrices = new HashMap<>();
+
+    private Map<Integer, Order> storeOrders;
 
     /**
      * Constructs a new StoreImpl
      */
-    public Store(Provider prov, BankService bk) {
+    public Store(ISeller prov, Account account) {
         provider = prov;
-        bank = bk;
-    }
-
-    /**
-     * @param item a given item
-     * @return the price of a given item
-     * @throws UnknownItemException
-     */
-    public double getPrice(Object item) throws UnknownItemException {
-        return provider.getPrice(item);
+        account = account;
     }
 
     /**
@@ -39,36 +33,36 @@ public class Store {
      * keys = order keys as Integers
      * values = Order instances
      */
-    private Map<Integer, Order> orders = new HashMap<>();
+    private final Map<Integer, Order> orders = new HashMap<>();
 
-    /**
-     * A map of items available in the stock of the store.
-     * keys = the references of the items as Objects
-     * values = ItemInStock instances
-     */
-    private Map<Object, ItemInStock> itemsInStock = new HashMap<>();
 
-    public Provider getProvider() {
+    public ISeller getProvider() {
         return provider;
     }
 
-    public BankService getBank() {
-        return bank;
+    public Account getAccount() {
+        return account;
     }
 
     public Map<Integer, Order> getOrders() {
         return orders;
     }
 
-    public Map<Object, ItemInStock> getItemsInStock() {
-        return itemsInStock;
+    @Override
+    public double getPrice(Product product) throws UnknownItemException {
+
+        if (!itemPrices.containsKey(product))
+            throw new UnknownItemException("Item " + product + " is not an item delivered by this provider.");
+
+        Double price = itemPrices.get(product);
+        return price.doubleValue();
     }
 
-    // -----------------------------------------------------
-    // Other methods
-    // -----------------------------------------------------
+    public Map<Product, Integer> getItemsInStock() {
+        return this.itemStock.getContent();
+    }
 
-    public String toString() {
-        return "E-Store";
+    public Map<Integer, Order> getStoreOrders() {
+        return storeOrders;
     }
 }

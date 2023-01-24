@@ -1,7 +1,8 @@
 package core.data.interfaces;
 
 import core.data.Product;
+import estorePojo.exceptions.UnknownItemException;
 
 public interface ISeller {
-    public double getPrice(Product product);
+    double getPrice(Product product) throws UnknownItemException;
 }

@@ -6,99 +6,85 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import core.Client;
+import core.data.interfaces.IItemList;
+import core.data.interfaces.ISeller;
 import core.service.OrderService;
 import estorePojo.exceptions.UnknownItemException;
 
-public class Order {
+public class Order implements IItemList {
 
-	/** The total number of orders emitted so far. */
-	private static int numOrders;
+	private Account clientAccount;
+	private String deliveryAddress;
+	private ISeller store;
+	public Date deliveryDate;
+	private int deliveryDelay;
+	private Map<Product,Integer> orderContent;
 
-	/** The index of this order. */
-	private int num;
+	private Integer orderId;
 
-	private Client client;
-	private Object item;
-	private String address;
-	private String bankAccountRef;
-
-	/** The date at which the ordered is issued. */
-	public Date date;
-
-	/** The delay for delivering the items in the order. */
-	private int delay;
-
-	/** The items currently in the order. */
-	private Set<Object> items = new HashSet<>();
-
-	/** The quantities of each item ordered. key=item, value=quantity. */
-	private Map<Object,Integer> itemQuantities = new HashMap<>();
-
-	/** The individual prices of each item ordered. key=item, value=price. */
-	private Map<Object,Double> itemPrices = new HashMap<>();
-
-	private Order() {
-		num = numOrders++;
-		date = new Date();
+	public Order(Account clientAccount, String deliveryAddress, ISeller store, Date deliveryDate, int deliveryDelay) {
+		this.clientAccount = clientAccount;
+		this.deliveryAddress = deliveryAddress;
+		this.store = store;
+		this.deliveryDate = deliveryDate;
+		this.deliveryDelay = deliveryDelay;
+		this.orderContent = new HashMap<>();
 	}
 
-	public Order(Client client, String address, String bankAccountRef) {
-		this();
-		this.client = client;
-		this.address = address;
-		this.bankAccountRef = bankAccountRef;
+	public Map<Product, Integer> getOrderContent() {
+		return orderContent;
 	}
 
-	/**
-	 * @return Returns the delay for delivering this order.
-	 */
-	public int getDelay() {
-		return delay;
+	public Account getClientAccount() {
+		return clientAccount;
 	}
 
-	/**
-	 * Set the delay for this order. The delay is the highest delay for delivering
-	 * all the items of an order.
-	 */
-	public void setDelay(int delay) {
-		if (delay > this.delay)
-			this.delay = delay;
+	public void setClientAccount(Account clientAccount) {
+		this.clientAccount = clientAccount;
 	}
 
-	public int getKey() {
-		return num;
+	public String getDeliveryAddress() {
+		return deliveryAddress;
 	}
 
-	public Set<Object> getItems() {
-		return items;
+	public void setDeliveryAddress(String deliveryAddress) {
+		this.deliveryAddress = deliveryAddress;
 	}
 
-	public void setItems(Set<Object> items) {
-		this.items = items;
+	public ISeller getStore() {
+		return store;
 	}
 
-	public Map<Object, Integer> getItemQuantities() {
-		return itemQuantities;
+	public void setStore(ISeller store) {
+		this.store = store;
 	}
 
-	public void setItemQuantities(Map<Object, Integer> itemQuantities) {
-		this.itemQuantities = itemQuantities;
+	public Date getDeliveryDate() {
+		return deliveryDate;
 	}
 
-	public Map<Object, Double> getItemPrices() {
-		return itemPrices;
+	public void setDeliveryDate(Date deliveryDate) {
+		this.deliveryDate = deliveryDate;
 	}
 
-	public void setItemPrices(Map<Object, Double> itemPrices) {
-		this.itemPrices = itemPrices;
+	public int getDeliveryDelay() {
+		return deliveryDelay;
 	}
 
-	public String toString() {
-		String msg = "Order #" + num + " ";
-		msg += "amount: " + new OrderService().computeAmount(this) + " "; //todo : pb de couplage, à changer
-		msg += "delay: " + getDelay() + "h ";
-		msg += "issued on: " + date;
-		return msg;
+	public void setDeliveryDelay(int deliveryDelay) {
+		this.deliveryDelay = deliveryDelay;
+	}
+
+	@Override
+	public Map<Product, Integer> getContent() {
+		return orderContent;
+	}
+
+	public Integer getOrderId() {
+		return orderId;
+	}
+
+	public void setContent(Map<Product, Integer> content) {
+		this.orderContent = content;
 	}
 }

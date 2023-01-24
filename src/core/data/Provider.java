@@ -3,36 +3,31 @@ package core.data;
 import java.util.HashMap;
 import java.util.Map;
 
+import core.data.interfaces.ISeller;
 import estorePojo.exceptions.UnknownItemException;
 
-public class Provider {
+public class Provider implements ISeller {
 
-	private Map<String, Double> itemPrices = new HashMap<>();
+	private final Map<Product, Double> itemPrices = new HashMap<>();
 
-	/**
-	 * Constructs a new ProviderImpl
-	 */
-	public Provider() {
-		itemPrices.put("CD", 15d);
-		itemPrices.put("DVD", 20d);
-	}
 
 	/**
 	 * Get the price of an item provided by this provider.
 	 * 
-	 * @param item
+	 * @param product
 	 * @return
 	 */
-	public double getPrice(Object item) throws UnknownItemException {
+	@Override
+	public double getPrice(Product product) throws UnknownItemException {
 
-		if (!itemPrices.containsKey(item))
-			throw new UnknownItemException("Item " + item + " is not an item delivered by this provider.");
+		if (!itemPrices.containsKey(product))
+			throw new UnknownItemException("Item " + product + " is not an item delivered by this provider.");
 
-		Double price = (Double) itemPrices.get(item);
+		Double price = itemPrices.get(product);
 		return price.doubleValue();
 	}
 
-	public Map<String, Double> getItemPrices() {
+	public Map<Product, Double> getItemPrices() {
 		return itemPrices;
 	}
 }

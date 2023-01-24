@@ -1,58 +1,26 @@
 package core.service;
 
 import core.data.Account;
+import core.service.interfaces.IBankService;
 import estorePojo.exceptions.InsufficientBalanceException;
 import estorePojo.exceptions.UnknownAccountException;
 
-public class BankService {
+import java.util.List;
 
-    private Account estore;
-    private Account anne, bob;
-
-    public BankService() {
-        estore = new Account();
-        anne = new Account();
-        bob = new Account();
-
-        estore.setOwner("Estore");
-        estore.setAmount(0);
-        anne.setOwner("Anne");
-        anne.setAmount(30);
-        bob.setOwner("Bob");
-        bob.setAmount(100);
+public class BankService implements IBankService {
+    @Override
+    public void trasnfert(Account sender, Account receiver, double amount) {
+        withdraw(sender, amount);
+        credit(receiver, amount);
     }
 
-    public void transfert(String from, String to, double amount)
-            throws InsufficientBalanceException, UnknownAccountException {
-        Account Afrom = null, Ato = null;
-
-        if (from.equals("E-Store"))
-            Afrom = estore;
-        if (from.equals("Anne"))
-            Afrom = anne;
-        if (from.equals("Bob"))
-            Afrom = bob;
-
-        if (to.equals("E-Store"))
-            Ato = estore;
-        if (to.equals("Anne"))
-            Ato = anne;
-        if (to.equals("Bob"))
-            Ato = bob;
-
-        // Get the balance of the account to widthdraw
-        double fromBalance = Afrom.getAmount();
-
-        // Check whether the account is sufficiently balanced
-        if (fromBalance < amount)
-            throw new InsufficientBalanceException(from.toString());
-
-        // Get the balance of the account to credit
-        double toBalance = Ato.getAmount();
-
-        // Perform the transfert
-        Afrom.setAmount(fromBalance - amount);
-        Ato.setAmount(toBalance + amount);
+    @Override
+    public void credit(Account account, double amount) {
+        account.setAmount(account.getAmount()+amount);
     }
 
+    @Override
+    public void withdraw(Account account, double amount) {
+        account.setAmount(account.getAmount()-amount);
+    }
 }

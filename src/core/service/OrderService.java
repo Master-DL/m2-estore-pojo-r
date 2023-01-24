@@ -1,51 +1,43 @@
 package core.service;
 
 import core.data.Order;
+import core.data.Product;
+import core.data.interfaces.IItemList;
+import core.data.interfaces.ISeller;
+import core.service.interfaces.IItemService;
+import core.service.interfaces.ISellerService;
 import estorePojo.exceptions.UnknownItemException;
 
-public class OrderService {
+import java.util.Map;
 
-    /**
-     * Add an item to the order.
-     *
-     * @param item
-     * @param qty
-     * @param price
-     * @throws UnknownItemException
-     */
-    public void addItem(Order order, Object item, int qty, double price) throws UnknownItemException {
+public class OrderService implements IItemService {
 
-        if (order.getItemPrices().containsKey(item)) {
-            double oldPrice = ((Double) order.getItemPrices().get(item)).doubleValue();
-            if (oldPrice != price)
-                throw new UnknownItemException(
-                        "Item " + item + " price (" + price + ") added to cart is different from the price (" + oldPrice
-                                + ") of the same item already in the cart");
-        }
+    private final StoreService storeService;
 
-        order.getItems().add(item);
-        order.getItemPrices().put(item, price);
-
-        int newQty = qty;
-        if (order.getItemQuantities().containsKey(item)) {
-            newQty += ((Integer) order.getItemQuantities().get(item)).intValue();
-        }
-        order.getItemQuantities().put(item, newQty);
+    public OrderService() {
+        storeService = new StoreService();
     }
 
-    /**
-     * Compute the total amount of the order
-     */
-    public double computeAmount(Order order) {
+    @Override
+    public void addItem(Product product, int quantity, IItemList itemsContent) {
+        itemsContent.getContent().put(product, quantity);
+    }
 
-        double amount = 0;
+    @Override
+    public void setQuantity(Product product, int quantity, IItemList itemsContent) {
+        itemsContent.getContent().replace(product, quantity);
+    }
 
-        for (Object item : order.getItems()) {
-            int qty = ((Integer) order.getItemQuantities().get(item)).intValue();
-            double price = ((Double) order.getItemPrices().get(item)).doubleValue();
-            amount += qty * price;
+    @Override
+    public double computeAmount(IItemList itemsContent, ISeller store) {
+        double total = 0;
+        for (Product p : itemsContent.getContent().keySet()) {
+            try {
+                total += itemsContent.getContent().get(p) * store.getPrice(p);
+            } catch (UnknownItemException e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        return amount;
+        return total;
     }
 }
